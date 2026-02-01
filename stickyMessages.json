@@ -1,0 +1,16 @@
+{
+  "1444491884398514218": {
+    "1467252992649724028": {
+      "name": "warning",
+      "content": "Warning: please ellaborate when reporting bugs, provide the log copied from Metrolist app or describe accurately the issue with visual feedback (e.g Screenshot or video)",
+      "lastMessageId": "1467272523979690067"
+    }
+  },
+  "1398083750063247581": {
+    "1417979449898701021": {
+      "name": "bugs-channel-warning",
+      "content": "Warning: read <#1400780314649034844> before asking for help. Make sure your issue wasn't reported already! Make sure you also read the megathread: https://github.com/mostafaalagamy/metrolist/issues/2556",
+      "lastMessageId": "1467511896377917533"
+    }
+  }
+}

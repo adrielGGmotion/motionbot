@@ -1,4 +1,0 @@
-{
-    "_comment": "You can copy any key from the language files (e.g., languages/en.json) to this file to customize its value. If a key is not present here, the bot will use the default translation from the selected language.",
-    "bot_initializing": "Starting motionbot..."
-}

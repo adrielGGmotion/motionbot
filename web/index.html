@@ -70,9 +70,11 @@
             <section id="commands" class="content-section">
                 <header>
                     <h2>Commands</h2>
-                    <div class="search-wrapper">
-                        <input type="text" id="command-search"
-                            placeholder="Search commands by name, description or category...">
+                    <div class="search-wrapper" style="display: flex; gap: 10px;">
+                        <select id="guild-selector" class="select-input" style="width: 200px;">
+                            <option value="">Loading servers...</option>
+                        </select>
+                        <input type="text" id="command-search" placeholder="Search commands..." style="flex-grow: 1;">
                     </div>
                 </header>
                 <div id="commands-container" class="commands-grid">
@@ -407,6 +409,8 @@
             }
         }
 
+        let currentGuildId = null;
+
         document.getElementById('save-gsm')?.addEventListener('click', async () => {
             const url = document.getElementById('gsm-url').value;
             const keepAlive = document.getElementById('gsm-keep-alive').checked;
@@ -434,9 +438,38 @@
 
         let allCommands = [];
 
+        async function fetchGuilds() {
+            try {
+                const res = await fetch('/api/guilds');
+                const guilds = await res.json();
+                const selector = document.getElementById('guild-selector');
+
+                // Keep "Global" option
+                selector.innerHTML = '<option value="">Global (All Servers)</option>';
+
+                guilds.forEach(g => {
+                    const option = document.createElement('option');
+                    option.value = g.id;
+                    option.textContent = g.name;
+                    selector.appendChild(option);
+                });
+
+                selector.addEventListener('change', (e) => {
+                    currentGuildId = e.target.value || null;
+                    fetchCommands(); // Reload commands for selected guild
+                });
+            } catch (err) {
+                console.error("Failed to fetch guilds", err);
+            }
+        }
+
         async function fetchCommands() {
             try {
-                const res = await fetch('/api/commands');
+                let url = '/api/commands';
+                if (currentGuildId) {
+                    url += `?guildId=${currentGuildId}`;
+                }
+                const res = await fetch(url);
                 allCommands = await res.json();
                 renderCommands(allCommands);
             } catch (err) {
@@ -484,11 +517,15 @@
                 const res = await fetch('/api/commands/toggle', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ name, enabled })
+                    body: JSON.stringify({
+                        name,
+                        enabled,
+                        guildId: currentGuildId
+                    })
                 });
                 const data = await res.json();
                 if (data.success) {
-                    console.log(`Command ${name} ${enabled ? 'enabled' : 'disabled'}`);
+                    console.log(`Command ${name} ${enabled ? 'enabled' : 'disabled'} for ${currentGuildId || 'Global'}`);
                 } else {
                     alert('Failed to update command on Discord. Check bot console.');
                 }
@@ -511,7 +548,8 @@
         updateStats();
         fetchTheme();
         fetchLanguage();
-        fetchCommands();
+        fetchGuilds(); // Load Guilds
+        fetchCommands(); // Initial Load (Global)
         fetchGSMConfig();
     </script>
 </body>
