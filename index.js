@@ -3,6 +3,7 @@ const figlet = require('figlet');
 const pc = require('picocolors');
 const config = require('./settings/config');
 const languageManager = require('./settings/languageManager');
+const keepAliveManager = require('./settings/keepAliveManager');
 const { loadEvents, loadCommands, deployCommands } = require('./handler');
 
 // Global Bot Stats
@@ -55,6 +56,9 @@ async function init() {
         } else {
             console.log(pc.red('  ✖ ') + languageManager.t('commands_deploy_failed'));
         }
+
+        // 5a. Init Keep Alive
+        keepAliveManager.init();
 
         // 5. Configuration Check
         if (!config.token || config.token === 'YOUR_TOKEN_HERE') {

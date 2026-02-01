@@ -147,6 +147,77 @@ function startDashboard(client, stats) {
         }
     });
 
+    app.get('/api/config/gsm', (req, res) => {
+        const fs = require('fs');
+        const envPath = path.join(__dirname, '..', '.env');
+        let url = process.env.GSM_BASE_URL;
+        let keepAlive = process.env.GSM_KEEP_ALIVE === 'true';
+
+        // Try reading directly from file if not in process (though dotenv should have loaded it)
+        if (fs.existsSync(envPath)) {
+            const envContent = fs.readFileSync(envPath, 'utf8');
+
+            if (!url) {
+                const urlMatch = envContent.match(/^GSM_BASE_URL=(.*)$/m);
+                if (urlMatch) url = urlMatch[1].trim();
+            }
+
+            // Always check file for boolean to be sure
+            const keepAliveMatch = envContent.match(/^GSM_KEEP_ALIVE=(.*)$/m);
+            if (keepAliveMatch) keepAlive = keepAliveMatch[1].trim() === 'true';
+        }
+        res.json({ url, keepAlive });
+    });
+
+    app.post('/api/config/env', (req, res) => {
+        const fs = require('fs');
+        const envPath = path.join(__dirname, '..', '.env');
+        const updates = req.body; // Expects { KEY: VALUE }
+
+        try {
+            let envContent = fs.existsSync(envPath) ? fs.readFileSync(envPath, 'utf8') : '';
+            const lines = envContent.split('\n');
+            const newLines = [];
+            const keysUpdated = new Set();
+
+            lines.forEach(line => {
+                const match = line.match(/^([^=]+)=(.*)$/);
+                if (match) {
+                    const key = match[1];
+                    if (updates.hasOwnProperty(key)) {
+                        newLines.push(`${key}=${updates[key]}`);
+                        keysUpdated.add(key);
+                        // Update process.env runtime as well
+                        process.env[key] = updates[key];
+                    } else {
+                        newLines.push(line);
+                    }
+                } else {
+                    newLines.push(line);
+                }
+            });
+
+            // Append new keys
+            for (const [key, value] of Object.entries(updates)) {
+                if (!keysUpdated.has(key)) {
+                    newLines.push(`${key}=${value}`);
+                    process.env[key] = value;
+                }
+            }
+
+            fs.writeFileSync(envPath, newLines.join('\n'));
+
+            // Reload Keep Alive Manager
+            const keepAliveManager = require('../settings/keepAliveManager');
+            keepAliveManager.reload();
+
+            res.json({ success: true });
+        } catch (err) {
+            console.error("Failed to update .env", err);
+            res.status(500).json({ success: false });
+        }
+    });
+
     app.listen(port, host, () => {
         let url = `http://localhost:${port}`;
         if (host === '0.0.0.0') {

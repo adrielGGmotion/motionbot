@@ -10,7 +10,13 @@
 
 <body>
     <div class="container">
-        <aside class="sidebar">
+        <button id="menu-toggle" class="menu-toggle" aria-label="Toggle Menu">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+        <div class="sidebar-overlay" id="sidebar-overlay"></div>
+        <aside class="sidebar" id="sidebar">
             <div class="sidebar-header">
                 <div class="bot-identity">
                     <img id="bot-avatar" src="/api/avatar" alt="Avatar" class="avatar-img">
@@ -26,6 +32,8 @@
                     <li class="nav-item" data-section="commands">Commands</li>
                     <li class="nav-item" data-section="themes">Themes</li>
                     <li class="nav-item" data-section="info">Info</li>
+                    <div class="sidebar-separator"></div>
+                    <li class="nav-item" data-section="integrations">Integrations</li>
                 </ul>
             </nav>
             <div class="sidebar-footer">
@@ -149,6 +157,64 @@
                             </p>
                             <p>We believe in open exchange – feel free to profit, as long as you keep the code alive for
                                 everyone!</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="integrations" class="content-section">
+                <!-- Overview / Hub View -->
+                <div id="integrations-hub">
+                    <header>
+                        <h2>Integrations</h2>
+                        <p class="section-desc">Manage and configure external services connected to motionbot.</p>
+                    </header>
+                    <div class="integrations-grid">
+                        <div class="integration-card" onclick="showIntegration('gsm')">
+                            <div class="int-icon">📱</div>
+                            <div class="int-info">
+                                <h3>GSMArena</h3>
+                                <p>Fetch device specifications and pricing.</p>
+                            </div>
+                            <div class="int-arrow">➜</div>
+                        </div>
+                        <!-- Add more integrations here in the future -->
+                    </div>
+                </div>
+
+                <!-- GSMArena Config View -->
+                <div id="integration-gsm" class="integration-detail" style="display: none;">
+                    <header class="detail-header">
+                        <button class="back-btn" onclick="showIntegrationHub()">
+                            <span>←</span> Back
+                        </button>
+                        <h2>GSMArena Configuration</h2>
+                    </header>
+
+                    <div class="customization">
+                        <div class="theme-controls">
+                            <h3>Connection Settings</h3>
+                            <p class="section-desc">Configure the connection to the GSMArena API.</p>
+
+                            <div class="control-group">
+                                <label for="gsm-url">API Base URL</label>
+                                <input type="text" id="gsm-url" placeholder="http://localhost:3000" class="text-input">
+                            </div>
+
+                            <div class="control-group">
+                                <label for="gsm-keep-alive">
+                                    Keep Alive
+                                    <span class="tooltip-icon"
+                                        title="Pings the API every 15s to prevent cold starts on free hosts.">ℹ</span>
+                                </label>
+                                <label class="switch">
+                                    <input type="checkbox" id="gsm-keep-alive">
+                                    <span class="slider round"></span>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="button-row">
+                            <button id="save-gsm" class="btn">Save Configuration</button>
                         </div>
                     </div>
                 </div>
@@ -285,6 +351,87 @@
             }
         });
 
+        // Mobile Menu Logic
+        const menuToggle = document.getElementById('menu-toggle');
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('sidebar-overlay');
+        const navLinks = document.querySelectorAll('.nav-item');
+
+        function toggleMenu() {
+            sidebar.classList.toggle('open');
+            overlay.classList.toggle('active');
+            menuToggle.classList.toggle('active');
+        }
+
+        if (menuToggle) {
+            menuToggle.addEventListener('click', toggleMenu);
+            overlay.addEventListener('click', toggleMenu);
+        }
+
+        // Close menu/reset integrations when switching main sections
+        navLinks.forEach(link => {
+            link.addEventListener('click', () => {
+                if (window.innerWidth <= 768) {
+                    toggleMenu();
+                }
+
+                // If leaving integrations, reset to hub
+                if (link.dataset.section !== 'integrations') {
+                    setTimeout(showIntegrationHub, 300);
+                }
+            });
+        });
+
+        // Integrations Navigation
+        window.showIntegration = (id) => {
+            document.getElementById('integrations-hub').style.display = 'none';
+            document.getElementById(`integration-${id}`).style.display = 'block';
+        };
+
+        window.showIntegrationHub = () => {
+            document.querySelectorAll('.integration-detail').forEach(el => el.style.display = 'none');
+            document.getElementById('integrations-hub').style.display = 'block';
+        };
+
+        async function fetchGSMConfig() {
+            try {
+                const res = await fetch('/api/config/gsm');
+                const data = await res.json();
+                const input = document.getElementById('gsm-url');
+                const keepAlive = document.getElementById('gsm-keep-alive');
+
+                if (input) input.value = data.url || '';
+                if (keepAlive) keepAlive.checked = data.keepAlive || false;
+            } catch (err) {
+                console.error("Failed to fetch GSM config", err);
+            }
+        }
+
+        document.getElementById('save-gsm')?.addEventListener('click', async () => {
+            const url = document.getElementById('gsm-url').value;
+            const keepAlive = document.getElementById('gsm-keep-alive').checked;
+
+            try {
+                const res = await fetch('/api/config/env', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        GSM_BASE_URL: url,
+                        GSM_KEEP_ALIVE: keepAlive
+                    })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    alert('Configuration saved!');
+                } else {
+                    alert('Failed to save configuration.');
+                }
+            } catch (err) {
+                console.error("Failed to save GSM config", err);
+                alert('Error saving configuration.');
+            }
+        });
+
         let allCommands = [];
 
         async function fetchCommands() {
@@ -365,6 +512,7 @@
         fetchTheme();
         fetchLanguage();
         fetchCommands();
+        fetchGSMConfig();
     </script>
 </body>
 
