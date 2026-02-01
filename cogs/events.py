@@ -63,12 +63,19 @@ class Events(commands.Cog):
         self.bot.tree.on_error = self._old_tree_error
 
     async def on_app_command_error(self, interaction: discord.Interaction, error: discord.app_commands.AppCommandError):
-        # Log error
-        logger.error(f"Command error in {interaction.command.name if interaction.command else 'unknown'}: {error}")
+        from utils.logger import log_error
+        
+        # Log error in legacy style
+        command_name = interaction.command.name if interaction.command else "unknown"
+        log_path = log_error(error, command_name)
+        
+        logger.error(f"Command error in {command_name}: {error}")
         
         # Notify User
         try:
-            msg = f"An error occurred: {str(error)}"
+            msg = LanguageManager.t('error_prefix') if 'error_prefix' in LanguageManager._cache.get(LanguageManager._current_lang, {}) else "There was an error while executing this command!"
+            msg = f"{msg}\nLogs have been saved to `{log_path}`"
+            
             if interaction.response.is_done():
                 await interaction.followup.send(msg, ephemeral=True)
             else:

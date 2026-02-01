@@ -8,18 +8,17 @@ from utils.language_manager import LanguageManager
 from utils.command_manager import CommandManager
 import time
 
-app = Quart(__name__, static_folder='.', static_url_path='')
+WEB_DIR = os.path.dirname(os.path.abspath(__file__))
+app = Quart(__name__, static_folder=WEB_DIR, static_url_path='')
 bot_instance = None
-
-
 
 @app.route('/')
 async def index():
-    return await send_from_directory('.', 'index.html')
+    return await send_from_directory(WEB_DIR, 'index.html')
 
 @app.route('/style.css')
 async def style():
-    return await send_from_directory('.', 'style.css')
+    return await send_from_directory(WEB_DIR, 'style.css')
 
 @app.route('/api/stats')
 async def api_stats():
@@ -27,10 +26,10 @@ async def api_stats():
         return jsonify({"error": "Bot not initialized"}), 500
     
     return jsonify({
-        "uptime": time.time() - bot_instance.start_time if hasattr(bot_instance, 'start_time') else 0,
-        "commandsRan": 0, # TODO: Track commands
+        "uptime": time.time() - bot_instance.stats.start_time,
+        "commandsRan": bot_instance.stats.commands_ran,
         "botName": bot_instance.user.name if bot_instance.user else "MotionBot",
-        "botTag": f"{bot_instance.user.name}#{bot_instance.user.discriminator}" if bot_instance.user else "MotionBot#0000",
+        "botTag": str(bot_instance.user) if bot_instance.user else "MotionBot#0000",
         "status": "Online" if bot_instance.is_ready() else "Initializing",
         "guilds": len(bot_instance.guilds)
     })
