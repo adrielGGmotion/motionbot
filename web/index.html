@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>motionbot dashboard</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="container">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="bot-identity">
+                    <img id="bot-avatar" src="/api/avatar" alt="Avatar" class="avatar-img">
+                    <div class="bot-names">
+                        <h1 id="bot-name">motionbot</h1>
+                        <span id="bot-tag" class="bot-tag">motionbot#0000</span>
+                    </div>
+                </div>
+            </div>
+            <nav>
+                <ul>
+                    <li class="nav-item active" data-section="overview">Overview</li>
+                    <li class="nav-item" data-section="commands">Commands</li>
+                    <li class="nav-item" data-section="themes">Themes</li>
+                    <li class="nav-item" data-section="info">Info</li>
+                </ul>
+            </nav>
+            <div class="sidebar-footer">
+                <span class="status-dot" id="status-dot"></span>
+                <span id="bot-status-text">Online</span>
+            </div>
+        </aside>
+
+        <main class="content">
+            <section id="overview" class="content-section active">
+                <header>
+                    <h2>Overview</h2>
+                </header>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <label>Status</label>
+                        <div class="value" id="bot-status">...</div>
+                    </div>
+                    <div class="stat-card">
+                        <label>Uptime</label>
+                        <div class="value" id="bot-uptime">0s</div>
+                    </div>
+                    <div class="stat-card">
+                        <label>Commands</label>
+                        <div class="value" id="bot-commands">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <label>Servers</label>
+                        <div class="value" id="bot-guilds">0</div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="commands" class="content-section">
+                <header>
+                    <h2>Commands</h2>
+                    <div class="search-wrapper">
+                        <input type="text" id="command-search"
+                            placeholder="Search commands by name, description or category...">
+                    </div>
+                </header>
+                <div id="commands-container" class="commands-grid">
+                    <!-- Populated by JS -->
+                </div>
+            </section>
+
+            <section id="themes" class="content-section">
+                <header>
+                    <h2>Themes</h2>
+                </header>
+                <div class="customization">
+                    <div class="theme-controls">
+                        <div class="control-group">
+                            <label for="primary-color">Primary Color</label>
+                            <input type="color" id="primary-color" value="#0099ff">
+                        </div>
+                        <div class="control-group">
+                            <label for="accent-color">Accent Color</label>
+                            <input type="color" id="accent-color" value="#7289da">
+                        </div>
+                        <div class="control-group">
+                            <label for="error-color">Error Color</label>
+                            <input type="color" id="error-color" value="#ff0000">
+                        </div>
+                        <div class="control-group">
+                            <label for="language-select">Language</label>
+                            <select id="language-select" class="select-input">
+                                <!-- Options populated by JS -->
+                            </select>
+                        </div>
+                    </div>
+                    <div class="button-row">
+                        <button id="save-theme" class="btn">Save Theme</button>
+                        <button id="save-language" class="btn secondary">Save Language</button>
+                    </div>
+                </div>
+            </section>
+
+            <section id="info" class="content-section">
+                <header>
+                    <h2>Information</h2>
+                </header>
+                <div class="info-content">
+                    <div class="developer-card">
+                        <div class="dev-info">
+                            <img src="/api/developer" alt="Adriel" class="dev-avatar">
+                            <div class="dev-text">
+                                <h3>Adriel</h3>
+                                <p>Develops with ADHD</p>
+                            </div>
+                        </div>
+                        <a href="https://github.com/adrielGGmotion" target="_blank" class="dev-btn">
+                            GitHub Profile
+                        </a>
+                    </div>
+
+                    <div class="info-card">
+                        <h3>Project Resources</h3>
+                        <div class="link-grid">
+                            <a href="https://github.com/adrielGGmotion/motionbot" target="_blank" class="info-link">
+                                <span class="link-label">System Repository</span>
+                                <span class="link-url">Access the official source code and documentation.</span>
+                            </a>
+                            <a href="https://github.com/adrielGGmotion/motionbot/issues" target="_blank"
+                                class="info-link">
+                                <span class="link-label">Bug Reports & Feedback</span>
+                                <span class="link-url">Submit issues or suggest new features for the bot.</span>
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="info-card">
+                        <h3>License & Ethics</h3>
+                        <div class="license-badge">GPL 3.0 Open Source</div>
+                        <div class="license-explanation">
+                            <p><strong>Commercial Use Permitted</strong></p>
+                            <p>MotionBot is fully usable for commercial projects. You are free to monetize services
+                                using this bot.</p>
+                            <p>As per the <strong>GPL 3.0 License</strong>, any modifications or builds you create and
+                                distribute must remain open-source and accessible to the community under the same terms.
+                            </p>
+                            <p>We believe in open exchange – feel free to profit, as long as you keep the code alive for
+                                everyone!</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <footer>
+                <p>&copy; 2026 motionbot - minimal & feature-centric</p>
+            </footer>
+        </main>
+    </div>
+
+    <script>
+        // Section Switching Logic
+        const navItems = document.querySelectorAll('.nav-item');
+        const sections = document.querySelectorAll('.content-section');
+
+        navItems.forEach(item => {
+            item.addEventListener('click', () => {
+                const target = item.getAttribute('data-section');
+
+                navItems.forEach(i => i.classList.remove('active'));
+                item.classList.add('active');
+
+                sections.forEach(s => {
+                    s.classList.remove('active');
+                    if (s.id === target) s.classList.add('active');
+                });
+            });
+        });
+
+        async function updateStats() {
+            try {
+                const res = await fetch('/api/stats');
+                const data = await res.json();
+
+                document.getElementById('bot-status').textContent = data.status;
+                document.getElementById('bot-status-text').textContent = data.status;
+                document.getElementById('bot-commands').textContent = data.commandsRan;
+                document.getElementById('bot-guilds').textContent = data.guilds;
+
+                // Actual Names
+                document.getElementById('bot-name').textContent = data.botName;
+                document.getElementById('bot-tag').textContent = data.botTag;
+
+                // Formatted Uptime
+                const hours = Math.floor(data.uptime / 3600);
+                const minutes = Math.floor((data.uptime % 3600) / 60);
+                const seconds = Math.floor(data.uptime % 60);
+                document.getElementById('bot-uptime').textContent = `${hours}h ${minutes}m ${seconds}s`;
+
+                const dotColor = data.status === 'Online' ? '#00ff00' : '#ffaa00';
+                document.getElementById('status-dot').style.backgroundColor = dotColor;
+            } catch (err) {
+                console.error("Dashboard out of sync", err);
+            }
+        }
+
+        async function fetchTheme() {
+            try {
+                const res = await fetch('/api/theme');
+                const theme = await res.json();
+                document.getElementById('primary-color').value = theme.primary;
+                document.getElementById('accent-color').value = theme.accent;
+                document.getElementById('error-color').value = theme.error;
+            } catch (err) {
+                console.error("Failed to fetch theme", err);
+            }
+        }
+
+        async function fetchLanguage() {
+            try {
+                const res = await fetch('/api/language');
+                const data = await res.json();
+                const select = document.getElementById('language-select');
+
+                select.innerHTML = '';
+                data.available.forEach(lang => {
+                    const option = document.createElement('option');
+                    option.value = lang;
+                    option.textContent = lang.toUpperCase();
+                    if (lang === data.current) option.selected = true;
+                    select.appendChild(option);
+                });
+            } catch (err) {
+                console.error("Failed to fetch language", err);
+            }
+        }
+
+        document.getElementById('save-theme').addEventListener('click', async () => {
+            const theme = {
+                primary: document.getElementById('primary-color').value,
+                accent: document.getElementById('accent-color').value,
+                error: document.getElementById('error-color').value
+            };
+
+            try {
+                const res = await fetch('/api/theme', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(theme)
+                });
+                const data = await res.json();
+                if (data.success) {
+                    alert('Theme saved successfully!');
+                } else {
+                    alert('Failed to save theme.');
+                }
+            } catch (err) {
+                console.error("Failed to save theme", err);
+                alert('Error saving theme.');
+            }
+        });
+
+        document.getElementById('save-language')?.addEventListener('click', async () => {
+            const language = document.getElementById('language-select').value;
+            if (!language) return;
+
+            try {
+                const res = await fetch('/api/language', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ language })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    alert('Language saved successfully! Reboot the bot to apply terminal changes.');
+                    window.location.reload();
+                } else {
+                    alert('Failed to save language.');
+                }
+            } catch (err) {
+                console.error("Failed to save language", err);
+                alert('Error saving language.');
+            }
+        });
+
+        let allCommands = [];
+
+        async function fetchCommands() {
+            try {
+                const res = await fetch('/api/commands');
+                allCommands = await res.json();
+                renderCommands(allCommands);
+            } catch (err) {
+                console.error("Failed to fetch commands", err);
+            }
+        }
+
+        function renderCommands(commands) {
+            const container = document.getElementById('commands-container');
+            container.innerHTML = '';
+
+            const categories = [...new Set(commands.map(c => c.category))];
+
+            categories.forEach(cat => {
+                const catCommands = commands.filter(c => c.category === cat);
+                if (catCommands.length === 0) return;
+
+                const catHeader = document.createElement('div');
+                catHeader.className = 'category-header';
+                catHeader.innerHTML = `<h3>${cat}</h3>`;
+                container.appendChild(catHeader);
+
+                catCommands.forEach(cmd => {
+                    const card = document.createElement('div');
+                    card.className = 'command-card';
+                    card.innerHTML = `
+                        <div class="command-info">
+                            <span class="command-name">/${cmd.name}</span>
+                            <p class="command-desc">${cmd.description}</p>
+                        </div>
+                        <div class="command-action">
+                            <label class="switch">
+                                <input type="checkbox" ${cmd.enabled ? 'checked' : ''} onchange="toggleCommand('${cmd.name}', this.checked)">
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
+                    `;
+                    container.appendChild(card);
+                });
+            });
+        }
+
+        window.toggleCommand = async (name, enabled) => {
+            try {
+                const res = await fetch('/api/commands/toggle', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, enabled })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    console.log(`Command ${name} ${enabled ? 'enabled' : 'disabled'}`);
+                } else {
+                    alert('Failed to update command on Discord. Check bot console.');
+                }
+            } catch (err) {
+                console.error("Failed to toggle command", err);
+            }
+        };
+
+        document.getElementById('command-search').addEventListener('input', (e) => {
+            const query = e.target.value.toLowerCase();
+            const filtered = allCommands.filter(cmd =>
+                cmd.name.toLowerCase().includes(query) ||
+                cmd.description.toLowerCase().includes(query) ||
+                cmd.category.toLowerCase().includes(query)
+            );
+            renderCommands(filtered);
+        });
+
+        setInterval(updateStats, 2000);
+        updateStats();
+        fetchTheme();
+        fetchLanguage();
+        fetchCommands();
+    </script>
+</body>
+
+</html>
